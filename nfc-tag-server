@@ -4,6 +4,19 @@ require 'nfc'
 require 'eventmachine'
 require 'em-websocket'
 require 'evma_httpserver'
+require 'ArgsParser'
+
+parser = ArgsParser.parser
+parser.bind(:http_port, :hp, 'HTTP port', 8080)
+parser.bind(:websocket_port, :wp, 'WebSocket port', 8081)
+parser.bind(:help, :h, 'show help')
+first, params = parser.parse ARGV
+
+if parser.has_option(:help)
+  puts parser.help
+  puts "e.g.  ruby nfc-tag-server --http_port 8080 --websocket_port 8081"
+  exit 1
+end
 
 @@tag = nil
 
@@ -22,9 +35,11 @@ end
 
 EM::run do
   channel = EM::Channel.new
+  
+  EM::start_server('0.0.0.0', params[:http_port].to_i, NfcHttpServer)
+  puts "start HTTP server - port #{params[:http_port].to_i}"
 
-  EM::start_server('0.0.0.0', 8081, NfcHttpServer)
-  EM::WebSocket.start(:host => '0.0.0.0', :port => 8080) do |ws|
+  EM::WebSocket.start(:host => '0.0.0.0', :port => params[:websocket_port].to_i) do |ws|
     ws.onopen do
       sid = channel.subscribe do |mes|
         ws.send mes
@@ -41,6 +56,7 @@ EM::run do
       end
     end
   end
+  puts "start WebSocket server - port #{params[:websocket_port].to_i}"
 
   EM::defer do
     nfc = NFC.instance
