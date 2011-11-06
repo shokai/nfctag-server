@@ -20,11 +20,11 @@ end
 
 @@tag = nil
 
-class NfcHttpServer  < EventMachine::Connection
-  include EventMachine::HttpServer
+class NfcHttpServer  < EM::Connection
+  include EM::HttpServer
   
   def process_http_request
-    res = EventMachine::DelegatedHttpResponse.new(self)
+    res = EM::DelegatedHttpResponse.new(self)
     puts "* http #{@http_request_method} #{@http_path_info} #{@http_query_string} #{@http_post_content}"
     res.status = 200
     res.content = @@tag
