@@ -1,6 +1,6 @@
 NFC Tag Server
 ==============
-read NFC Tag via HTTP and WebSocket
+read NFC Tag via HTTP, WebSocket and TCP Socket
 
 
 Dependencies
@@ -29,7 +29,8 @@ Run
 Connect NFC Tag Reader, then
 
     % ./ntc-tag-server --help
-    % ./nfc-tag-server --http_port 8080 --websocket_port 8081
+    % ./nfc-tag-server
+    % ./nfc-tag-server --http_port 8080 --websocket_port 8081 --socket_port 8082
 
 
 Use
@@ -49,6 +50,12 @@ WebSocket
     ws.onmessage = function(e){
       Console.log(e.data);
     };
+
+
+Socket
+------
+
+    % telnet localhost 8082
 
 
 LICENSE:

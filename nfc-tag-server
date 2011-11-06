@@ -9,6 +9,7 @@ require 'ArgsParser'
 parser = ArgsParser.parser
 parser.bind(:http_port, :hp, 'HTTP port', 8080)
 parser.bind(:websocket_port, :wp, 'WebSocket port', 8081)
+parser.bind(:socket_port, :sp, 'TCP Socket port', 8082)
 parser.bind(:help, :h, 'show help')
 first, params = parser.parse ARGV
 
@@ -19,6 +20,7 @@ if parser.has_option(:help)
 end
 
 @@tag = nil
+@@channel = EM::Channel.new
 
 class NfcHttpServer  < EM::Connection
   include EM::HttpServer
@@ -32,27 +34,47 @@ class NfcHttpServer  < EM::Connection
   end
 end
 
+class NfcSocketServer < EM::Connection
+  def post_init
+    @sid = @@channel.subscribe do |mes|
+      send_data "#{mes}\n"
+    end
+    puts "* new socket client <#{@sid}>"
+  end
+
+  def receive_data mes
+    return if mes.strip.size < 1
+    puts "* socket client <#{@sid}> says : #{mes}"
+  end
+
+  def unbind
+    @@channel.unsubscribe @sid
+    puts "* socket client <#{@sid}> closed"
+  end
+end
+
 
 EM::run do
-  channel = EM::Channel.new
-  
   EM::start_server('0.0.0.0', params[:http_port].to_i, NfcHttpServer)
   puts "start HTTP server - port #{params[:http_port].to_i}"
 
+  EM::start_server('0.0.0.0', params[:socket_port].to_i, NfcSocketServer)
+  puts "start TCP Socket server - port #{params[:socket_port].to_i}"
+
   EM::WebSocket.start(:host => '0.0.0.0', :port => params[:websocket_port].to_i) do |ws|
     ws.onopen do
-      sid = channel.subscribe do |mes|
+      sid = @@channel.subscribe do |mes|
         ws.send mes
       end
-      puts "* new client <#{sid}> connected"
+      puts "* new websocket client <#{sid}> connected"
       ws.send @@tag
       ws.onmessage do |mes|
-        puts "* client <#{sid}> says : #{mes}"
+        puts "* websocket client <#{sid}> says : #{mes}"
       end
 
       ws.onclose do
-        channel.unsubscribe sid
-        puts "* client <#{sid}> closed"
+        @@channel.unsubscribe sid
+        puts "* websocket client <#{sid}> closed"
       end
     end
   end
@@ -65,7 +87,7 @@ EM::run do
       tag = nfc.find.to_s.downcase
       if tag != @@tag
         puts "tag : #{tag}"
-        channel.push tag.to_s
+        @@channel.push tag.to_s
         @@tag = tag
       end
       sleep 0.1
