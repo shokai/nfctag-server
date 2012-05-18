@@ -4,18 +4,18 @@ require 'nfc'
 require 'eventmachine'
 require 'em-websocket'
 require 'evma_httpserver'
-require 'ArgsParser'
+require 'args_parser'
 
-parser = ArgsParser.parser
-parser.bind(:http_port, :hp, 'HTTP port', 8080)
-parser.bind(:websocket_port, :wp, 'WebSocket port', 8081)
-parser.bind(:socket_port, :sp, 'TCP Socket port', 8082)
-parser.bind(:help, :h, 'show help')
-first, params = parser.parse ARGV
+parser = ArgsParser.parse ARGV do
+  arg :http_port, 'HTTP port', :alias => :hp, :default => 8080
+  arg :websocket_port, 'WebSocket port', :alias => :wp, :default => 8081
+  arg :socket_port, 'TCP Socket port', :alias => :sp, :default => 8082
+  arg :help, 'show help', :alias => :h
+end
 
-if parser.has_option(:help)
+if parser.has_option? :help
   puts parser.help
-  puts "e.g.  ruby nfc-tag-server --http_port 8080 --websocket_port 8081"
+  puts "e.g.  nfc-tag-server --http_port 8080 --websocket_port 8081 --socket_port 8082"
   exit 1
 end
 
@@ -58,13 +58,13 @@ end
 
 
 EM::run do
-  EM::start_server('0.0.0.0', params[:http_port].to_i, NfcHttpServer)
-  puts "start HTTP server - port #{params[:http_port].to_i}"
+  EM::start_server('0.0.0.0', parser[:http_port].to_i, NfcHttpServer)
+  puts "start HTTP server - port #{parser[:http_port].to_i}"
 
-  EM::start_server('0.0.0.0', params[:socket_port].to_i, NfcSocketServer)
-  puts "start TCP Socket server - port #{params[:socket_port].to_i}"
+  EM::start_server('0.0.0.0', parser[:socket_port].to_i, NfcSocketServer)
+  puts "start TCP Socket server - port #{parser[:socket_port].to_i}"
 
-  EM::WebSocket.start(:host => '0.0.0.0', :port => params[:websocket_port].to_i) do |ws|
+  EM::WebSocket.start(:host => '0.0.0.0', :port => parser[:websocket_port].to_i) do |ws|
     ws.onopen do
       sid = @@channel.subscribe do |mes|
         ws.send mes
@@ -81,7 +81,7 @@ EM::run do
       end
     end
   end
-  puts "start WebSocket server - port #{params[:websocket_port].to_i}"
+  puts "start WebSocket server - port #{parser[:websocket_port].to_i}"
 
   EM::defer do
     nfc = NFC.instance
