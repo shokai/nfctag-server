@@ -20,7 +20,8 @@ for Mac OSX
 Install Rubygems
 ------------
 
-    % gem install nfc eventmachine eventmachine_httpserver em-websocket ArgsParser
+    % gem install bundler
+    % bundle install
 
 
 Run

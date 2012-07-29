@@ -1,10 +1,7 @@
 #!/usr/bin/env ruby
 require 'rubygems'
-require 'nfc'
-require 'eventmachine'
-require 'em-websocket'
-require 'evma_httpserver'
-require 'args_parser'
+require 'bundler/setup'
+Bundler.require
 
 parser = ArgsParser.parse ARGV do
   arg :http_port, 'HTTP port', :alias => :hp, :default => 8080

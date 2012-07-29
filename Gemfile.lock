@@ -1,0 +1,21 @@
+GEM
+  remote: http://rubygems.org/
+  specs:
+    addressable (2.3.2)
+    args_parser (0.0.2)
+    em-websocket (0.3.8)
+      addressable (>= 2.1.1)
+      eventmachine (>= 0.12.9)
+    eventmachine (0.12.10)
+    eventmachine_httpserver (0.2.1)
+    nfc (2.1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  args_parser
+  em-websocket
+  eventmachine
+  eventmachine_httpserver
+  nfc
