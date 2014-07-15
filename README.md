@@ -29,7 +29,7 @@ Run
 
 Connect NFC Tag Reader, then
 
-    % ./ntc-tag-server --help
+    % ./nfc-tag-server --help
     % ./nfc-tag-server
     % ./nfc-tag-server --http_port 8080 --websocket_port 8081 --socket_port 8082
 
